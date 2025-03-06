@@ -94,8 +94,7 @@ Right now it is quite simplistic, but functional. It might stay that way, it mig
 - Use Wayland. This is not a hard requirement, but it makes a big difference.
 - Use ZRAM to avoid running out of RAM as easily. This is basically a hard requirement if you have a 1GB or 2GB Pi model, but strongly recommended everywhere. [Instructions here.](https://pi-apps.io/install-app/install-more-ram-on-raspberry-pi/)
 - Use Debian Bookworm or a new-ish Ubuntu image. Debian Bullseye may or may not work. If you try it, please let me know how it went. Maybe it works fine.
-- Your VM can be a folder anywhere, so it could be on an external SSD drive, or even network storage if you wanted. If you encounter issues with sparse preallocation, let me know and I can add a fallback case to do full preallocation.
-- If you are using the `boot-nodisplay` with `connect` modes, the VM could start in the background every time you log in to Linux. [Use Autostar for this.](https://github.com/Botspot/autostar)
+- Some questions keep being asked. "How to use my own Windows ISO?" "How to change the drive size or the language or the screen resolution?" [Find the answers here.](https://github.com/Botspot/bvm/discussions/35)
 - Encounter an issue? [Open an issue.](https://github.com/Botspot/bvm/issues) Deal? Deal. :)
 - Please post how you use BVM in [the Show-And-Tell](https://github.com/Botspot/bvm/discussions/categories/show-and-tell)!
 
