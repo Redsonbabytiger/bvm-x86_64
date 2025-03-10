@@ -954,10 +954,10 @@ To get a fresh VM up and running, use a sequence like this:
               run_in_terminal "export fullscreen=$fullscreen ; ${DIRECTORY}/bvm boot-gtk '$vmdir' ; step_complete"
               ;;
             FreeRDP)
-              run_in_terminal "export fullscreen=$fullscreen ; ${DIRECTORY}/bvm boot-nodisplay '$vmdir' & sleep 15 ; nosplash=true ${DIRECTORY}/bvm connect-freerdp '$vmdir' ; step_complete"
+              run_in_terminal "export fullscreen=$fullscreen ; ${DIRECTORY}/bvm boot-nodisplay '$vmdir' & pid=\$! ; while [ -f /proc/\$pid/status ] && [ ! -f /proc/\$(cat '$vmdir/qemu.pid' 2>/dev/null)/status ];do sleep 1 ;done; nosplash=true ${DIRECTORY}/bvm connect-freerdp '$vmdir' ; step_complete"
               ;;
             Remmina)
-              run_in_terminal "export fullscreen=$fullscreen ; ${DIRECTORY}/bvm boot-nodisplay '$vmdir' & sleep 15 ; nosplash=true ${DIRECTORY}/bvm connect-remmina '$vmdir' ; step_complete"
+              run_in_terminal "export fullscreen=$fullscreen ; ${DIRECTORY}/bvm boot-nodisplay '$vmdir' & pid=\$! ; while [ -f /proc/\$pid/status ] && [ ! -f /proc/\$(cat '$vmdir/qemu.pid' 2>/dev/null)/status ];do sleep 1 ;done; nosplash=true ${DIRECTORY}/bvm connect-remmina '$vmdir' ; step_complete"
               ;;
             *)
               error "clickhandler: unrecognized boot gui mode"
@@ -1483,7 +1483,7 @@ To get a fresh VM up and running, use a sequence like this:
           fi
           
           #Copy new-and-improved remmina config
-          grep -qF 'to get microphone input working' "$vmdir/connect.remmina" || cp -f "${DIRECTORY}/resources/connect.remmina" "$vmdir/connect.remmina"
+          grep -qF 'to get microphone input working' "$vmdir/connect.remmina" 2>/dev/null || cp -f "${DIRECTORY}/resources/connect.remmina" "$vmdir/connect.remmina"
           #Use Remmina to set parameters in profile
           echo -e "$vm_username\n$vm_password\n127.0.0.1:$rdp_port\n$quality\n$HOME" | remmina --update-profile "$vmdir/connect.remmina" --set-option username --set-option password --set-option server --set-option quality --set-option drive
           
