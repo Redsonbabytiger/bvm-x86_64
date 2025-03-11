@@ -809,7 +809,7 @@ copy_icons
 #check system for compatibility
 if [ "$(id -u)" == 0 ]; then
   error "BVM cannot be run as root user. Wayland programs need to be run as a non-root user."
-elif ! sudo modprobe kvm ;then
+elif [ "$(modinfo --filename kvm)" != "(builtin)" ] && ! sudo modprobe kvm ;then
   error "KVM kernel module is needed but missing. Command that failed was 'sudo modprobe kvm'"
 
 #it seems being part of the kvm group is unnecessary
