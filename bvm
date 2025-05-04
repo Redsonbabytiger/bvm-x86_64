@@ -1422,7 +1422,7 @@ To get a fresh VM up and running, use a sequence like this:
     
     if [ $qemu_exit_code == 0 ];then
       status "QEMU closed."
-      echo -e '\e[103m\e[30mConsider supporting the developer Botspot, who is in a precarious life situation right now. Read more here:\e[96m\e[40m  \e[4mhttps://github.com/sponsors/Botspot\e[0m'
+      echo -e '\e[103m\e[30mConsider supporting the developer Botspot.\e[96m\e[40m  \e[4mhttps://github.com/sponsors/Botspot\e[0m'
     else
       (exit $qemu_exit_code) ; qemu_exitcode_analyzer
     fi
