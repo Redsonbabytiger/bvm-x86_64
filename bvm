@@ -1444,7 +1444,7 @@ To get a fresh VM up and running, use a sequence like this:
     status -n "Waiting for RDP service on VM to start listening on port $rdp_port... "
     while true;do
       #Once the RDP port is open, it means the VM is ready for connections
-      if nmap -p "$rdp_port" --script="${DIRECTORY}/resources/rdp-detector.nse" localhost | grep -qF 'RDP service detected';then
+      if nmap -p "$rdp_port" --script="${DIRECTORY}/resources/rdp-detector.nse" --system-dns localhost | grep -qF 'RDP service detected';then
         break
       elif ! process_exists "$(cat "$vmdir/qemu.pid" 2>/dev/null)" ;then
         error "\nQEMU process is no longer running. Maybe the OS failed to boot."
