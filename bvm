@@ -90,7 +90,8 @@ ${white}BOTSPOT  VIRTUAL  MACHINE  ${black}    ${rpired}     ${black}           
 "Minimum requirements? How about minimum suggestions. That’s better."
 "The only thing more surprising than this working... is how well it works."
 "Think of this as a very elaborate benchmark... for both you and your hardware."'
-  echo -e "$funny_messages" | shuf | sed -n $((RANDOM%10+1))p | tee /dev/stderr | (grep -q DONATE && sleep 10)
+  #echo -e "$funny_messages" | shuf | sed -n $((RANDOM%10+1))p | tee /dev/stderr | (grep -q DONATE && sleep 10)
+  warning "IF YOU ENCOUNTER THE "\""Password Expired"\"" ERROR, FOLLOW THESE INSTRUCTIONS: https://github.com/Botspot/bvm/issues/98"
 }
 
 get_space_free() { #Input: folder to check. Output: show many bytes can fit before the disk is full
