@@ -90,8 +90,7 @@ ${white}BOTSPOT  VIRTUAL  MACHINE  ${black}    ${rpired}     ${black}           
 "Minimum requirements? How about minimum suggestions. That’s better."
 "The only thing more surprising than this working... is how well it works."
 "Think of this as a very elaborate benchmark... for both you and your hardware."'
-  #echo -e "$funny_messages" | shuf | sed -n $((RANDOM%10+1))p | tee /dev/stderr | (grep -q DONATE && sleep 10)
-  warning "IF YOU ENCOUNTER THE "\""Password Expired"\"" ERROR, FOLLOW THESE INSTRUCTIONS: https://github.com/Botspot/bvm/issues/98"
+  echo -e "$funny_messages" | shuf | sed -n $((RANDOM%10+1))p | tee /dev/stderr | (grep -q DONATE && sleep 10)
 }
 
 get_space_free() { #Input: folder to check. Output: show many bytes can fit before the disk is full
@@ -1281,6 +1280,11 @@ To get a fresh VM up and running, use a sequence like this:
     if [ "$(cat "$vmdir/gui-steps-complete")" == 4 ];then #this will be 4 because firstboot failed after succeeding
       (mount_qcow2 "$vmdir/disk.qcow2" && remove_microsoft_defender "/media/$USER/bvm-mount$rdp_port" && echo 5 > "$vmdir/gui-steps-complete")
       unmount_qcow2
+    fi
+    
+    #all users who created a VM before May 4th 2025 need to follow these instructions
+    if [ "$(stat -c %W $vmdir/disk.qcow2)" -le 1746416400 ];then
+      echo -e "\e[93mIF YOU ENCOUNTER THE "\""Password Expired"\"" ERROR, FOLLOW THESE INSTRUCTIONS: https://github.com/Botspot/bvm/issues/98\e[0m" 1>&2
     fi
     
     if [ "$mode" != boot-nodisplay ] && [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ];then
