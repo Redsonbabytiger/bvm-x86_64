@@ -50,7 +50,7 @@ Execute-Command 'net start TermService'
 #Execute-Command 'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v MaxDisconnectionTime /t REG_DWORD /d 60000 /f'
 
 # Prevent "your password has expired and must be changed" after 42 days from using BVM
-Execute-Command 'wmic UserAccount set PasswordExpires=False'
+Execute-Command 'net accounts /maxpwage:unlimited'
 
 # Allow Windows upgrades with unsupported TPM or CPU
 Execute-Command 'reg add HKLM\SYSTEM\Setup\MoSetup /v AllowUpgradesWithUnsupportedTPMOrCPU /t REG_DWORD /d 0x00000001 /f'
