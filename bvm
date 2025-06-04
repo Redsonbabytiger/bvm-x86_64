@@ -1402,7 +1402,7 @@ To get a fresh VM up and running, use a sequence like this:
       [ -z "$qemu_pid" ] && continue
       
       free_ram=$(grep MemAvailable /proc/meminfo | awk '{print int($2/1024)}')
-      qemu_used_ram=$(grep VmRSS /proc/$qemu_pid/status | awk '{print $2/1024}' | sed 's/\..*//g')
+      qemu_used_ram=$(grep VmRSS /proc/$qemu_pid/status | awk '{print $2/1024}' | sed 's/[.,].*//g')
       other_tasks_ram=$((total_ram - (qemu_used_ram + free_ram)))
       #echo "other taks use $other_tasks_ram"
       balloon_size=$((total_ram - other_tasks_ram - free_ram_goal))
