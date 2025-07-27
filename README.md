@@ -10,7 +10,7 @@ Please [report](https://github.com/Botspot/bvm/issues) issues. Do not assume I a
 - A first-class setup experience. None of the usual sticking points are present here, thanks to how automated it is.
 - It uses network passthrough to the Linux network stack, so Ethernet and WiFi all work out of the box.
 - It uses audio passthrough to pipewire/pulseaudio/ALSA, so audio playback works out of the box.
-- The VM uses less than 1GB of RAM and minimal CPU when not in use, leaving plenty of resources free for Linux applications.
+- After installation and startup, the VM uses less than 1GB of RAM and minimal CPU when not in use, leaving plenty of resources free for Linux applications.
 - The `connect` mode gives the VM access to files stored on Linux, and any changes are immediately synchronized. (Go to This PC and look for the `home` network share)
 - It is capable of USB passthrough - any USB device can be made to directly communicate with Windows.
 - Thanks to Microsoft's built-in [Prism emulator](https://learn.microsoft.com/en-us/windows/arm/apps-on-arm-x86-emulation), all Windows applications should work, including x86 and x64. Compare that to [Wine](https://pi-apps.io/install-app/install-wine-x64-on-raspberry-pi/), which fails on everything but old, simple programs.
