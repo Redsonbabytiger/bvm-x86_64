@@ -1523,7 +1523,7 @@ To get a fresh VM up and running, use a sequence like this:
             #immediately got to this state, so VM never went offline but RDP viewer closed.
             #ask for user input to prevent a forever failed connection loop
             status_green "VM never went offline."
-            status -n "Assuming you disconnected. Press any key to reconnect, or Ctrl+C to exit."
+            status -n "Assuming you disconnected. Press any key to reconnect, or Ctrl+C to unsafely force-kill the VM."
             read -N1 key
             break
           fi
