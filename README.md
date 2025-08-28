@@ -113,7 +113,7 @@ Right now it is quite simplistic, but functional. It might stay that way, it mig
 ### Ask me anything!
 - Who made this?  
     I'm [Botspot](https://github.com/Botspot), a college student, bash scripter, Raspberry Pi user, and founder of [Pi-Apps](https://github.com/Botspot/pi-apps) and [WoR-Flasher](https://github.com/Botspot/wor-flasher).
-- Is this safe to use?
+- Is this safe to use?  
     Some people are skeptical of free software. What if it has a virus or backdoor? In the case of BVM, all source code is easy to inspect. Read the code and see for yourself.
 - Is this legal?  
     Yes. This project does not distribute copyrighted material, and the license key used is a free one provided by Microsoft for virtual machines. Read the files in `resources/` for more details.
