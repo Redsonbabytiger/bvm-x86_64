@@ -1340,9 +1340,8 @@ To get a fresh VM up and running, use a sequence like this:
         product=$(echo "$usbdev" | awk -F: '{print $2}')
 
         #allow non-root qemu uaccess permission to this usb device (https://bbs.archlinux.org/viewtopic.php?id=209185)
-        echo 'SUBSYSTEM=="usb", ATTRS{idVendor}=="'$vendor'", ATTRS{idProduct}=="'$product'", TAG+="uaccess"' | sudo tee --append "$udev_file" >/dev/null
-        
-        usb_forwarding_flags+=(-device usb-host,vendorid=0x$vendor,productid=0x$product,driver=usb-host)
+        echo 'SUBSYSTEM=="usb", ATTRS{idVendor}=="'$vendor'", ATTRS{idProduct}=="'$product'", TAG+="uaccess", ENV{UDISKS_IGNORE}="1", ENV{MTP_NO_PROBE}="1", ENV{ID_MTP_DEVICE}="0", DRIVER==""' | sudo tee -a "$udev_file" >/dev/null
+        usb_forwarding_flags+=(-device usb-host,vendorid=0x$vendor,productid=0x$product,bus=,passthrough_xhci.0)
       done
       #now reload udev rules
       sudo udevadm control -R
@@ -1380,13 +1379,14 @@ To get a fresh VM up and running, use a sequence like this:
       -device usb-kbd \
       -device usb-tablet \
       -monitor unix:"$vmdir/qemu.sock",server,nowait \
-      "${usb_forwarding_flags[@]}" \
       "${audio_flags[@]}" \
       -rtc base=localtime,clock=host,driftfix=none \
       -device virtio-rng-pci,rng=rng0 -object rng-random,id=rng0,filename=/dev/urandom \
       "${network_flags[@]}" \
       -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd \
-      -drive file="$vmdir/disk.qcow2",if=virtio,discard=unmap,aio=threads,cache=none)
+      -drive file="$vmdir/disk.qcow2",if=virtio,discard=unmap,aio=threads,cache=none \
+      -device qemu-xhci,id=passthrough_xhci \
+      "${usb_forwarding_flags[@]}")
     
     debug "full_qemu_flags: " "${full_qemu_flags[@]}"
     
