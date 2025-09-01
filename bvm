@@ -688,7 +688,7 @@ usb_passthrough_frontend() { #help the user add USB devices to be forwarded to t
     exit 1
   fi
   
-  output="$(lsusb | grep -vi hub | awk '{for(i=6; i<=NF; i++) printf "%s ", $i; print ""}' | sed 's/^/FALSE\n/ ; s/ /\n/' | yad \
+  output="$(lsusb | grep -vi ' hub$' | awk '{for(i=6; i<=NF; i++) printf "%s ", $i; print ""}' | sed 's/^/FALSE\n/ ; s/ /\n/' | yad \
     --window-icon "${DIRECTORY}/resources/graphics/icon.png" --class bvm --name bvm --title "BVM USB Passthrough Manager" \
     --width=510 --height=400 --center \
     --list --no-headers --checklist --column=:CHK --column=sysname --column=name --separator='\n' --print-column=2 \
