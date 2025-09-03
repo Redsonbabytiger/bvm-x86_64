@@ -943,20 +943,23 @@ To get a fresh VM up and running, use a sequence like this:
           #change green message to not say next step
           define_step_complete="$(echo "$define_step_complete" | sed 's+Please close this terminal to proceed to the next step\.+Thank you for using BVM! This terminal can be closed now.+g')"
           
-          if [ "$3" == 'fullscreen' ];then
+          if [[ "$2" == *'fullscreen' ]];then
             fullscreen=true
           else
             fullscreen=false
           fi
           
           case "$2" in
-            Direct)
+            'Direct RAMFB'*)
+              run_in_terminal "export fullscreen=$fullscreen ; ${DIRECTORY}/bvm boot-ramfb '$vmdir' ; step_complete"
+              ;;
+            Direct*)
               run_in_terminal "export fullscreen=$fullscreen ; ${DIRECTORY}/bvm boot-gtk '$vmdir' ; step_complete"
               ;;
-            FreeRDP)
+            FreeRDP*)
               run_in_terminal "export fullscreen=$fullscreen ; ${DIRECTORY}/bvm boot-nodisplay '$vmdir' & pid=\$! ; while [ -f /proc/\$pid/status ] && [ ! -f /proc/\$(cat '$vmdir/qemu.pid' 2>/dev/null)/status ];do sleep 1 ;done; nosplash=true ${DIRECTORY}/bvm connect-freerdp '$vmdir' ; step_complete"
               ;;
-            Remmina)
+            Remmina*)
               run_in_terminal "export fullscreen=$fullscreen ; ${DIRECTORY}/bvm boot-nodisplay '$vmdir' & pid=\$! ; while [ -f /proc/\$pid/status ] && [ ! -f /proc/\$(cat '$vmdir/qemu.pid' 2>/dev/null)/status ];do sleep 1 ;done; nosplash=true ${DIRECTORY}/bvm connect-remmina '$vmdir' ; step_complete"
               ;;
             *)
@@ -1013,7 +1016,7 @@ To get a fresh VM up and running, use a sequence like this:
     export button3="@bash -c 'clickhandler download'"
     export button4="@bash -c 'clickhandler prepare'"
     export button5="@bash -c 'clickhandler firstboot'"
-    export button6="@bash -c "\""clickhandler boot '%7'"\"""
+    export button6="@bash -c "\""clickhandler boot %7"\"""
     echo "button6 is $button6"
     export mount_button="@bash -c 'clickhandler mount'"
     export expand_button="@bash -c 'clickhandler expand'"
@@ -1061,7 +1064,7 @@ To get a fresh VM up and running, use a sequence like this:
       --field="<b>Prepare for installation</b>!${DIRECTORY}/resources/graphics/4.png!Bundle up driver files and get ready for first boot":FBTN "$initial_button4" \
       --field="<b>Install Windows 11</b>!${DIRECTORY}/resources/graphics/5.png!Boot the VM for the first time to install Windows":FBTN "$initial_button5" \
       --field="<b>Run Windows 11</b>!${DIRECTORY}/resources/graphics/6.png!Boot the VM normally":FBTN "$initial_button6" \
-      --field="Viewing mode:":CB "Direct!Direct fullscreen!FreeRDP!FreeRDP fullscreen!^Remmina!Remmina fullscreen" \
+      --field="Viewing mode:":CB "Direct RAMFB (debugging)!Direct!Direct fullscreen!FreeRDP!FreeRDP fullscreen!^Remmina!Remmina fullscreen" \
       --field="Mount disk.qcow2!!Browse the full C: drive of the VM to add/remove files":FBTN "$initial_mount_button" \
       --field="Expand disk.qcow2!!Increase the size of the storage available to the VM":FBTN "$initial_expand_button" \
       --field="USB passthrough!!Give the VM direct access to specific USB devices":FBTN "$initial_usbsetup_button"
