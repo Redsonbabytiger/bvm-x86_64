@@ -179,9 +179,16 @@ mount_qcow2() { #mount the $1 qcow2 disk image to /media/$USER/bvm-mount$rdp_por
   #find /dev/nbd* device not in use
   local nbd_device="$(connect_qcow2_to_nbd "$1")" || exit 1
   
+  #try to fix the filesystem so it can be mounted R/W even after unsafe shutdown
+  if sudo ntfsfix --clear-dirty ${nbd_device}p4 ;then
+    local mount_args=(-o rw,force)
+  else
+    local mount_args=()
+  fi
+  
   sudo mkdir -p /media/$USER/bvm-mount$rdp_port
   umount_retry /media/$USER/bvm-mount$rdp_port
-  if ! sudo mount ${nbd_device}p4 /media/$USER/bvm-mount$rdp_port ;then
+  if ! sudo mount -t ntfs-3g "$mount_args[@]}" ${nbd_device}p4 /media/$USER/bvm-mount$rdp_port ;then
     #mount failed, unmount and cleanup
     unmount_qcow2
     error "mount_qcow2: mount command failed"
@@ -218,6 +225,34 @@ remove_microsoft_defender() { #given mountpoint on $1, remove microsoft defender
     fi
     if [ "$defenderfound" == 1 ];then
       status_green "Successfully removed Microsoft Defender from disk.qcow2"
+    fi
+  fi
+}
+
+remove_UCPD_from_mountpoint() { #force the specified windows installation to remove UCPD.sys file (to prevent bluescreen) - by botspot
+  #Fixes the BSOD reported in https://github.com/Botspot/bvm/issues/72
+  #To diagnose: boot, get it to crash, shutdown.
+  #find most recent crash dump in C:/Windows/Minidump
+  #copy it out and analyze on another computer:
+  
+  #Download WinDbg Preview from the Microsoft Store
+  #Open WinDbg, go to File > Open Crash Dump, select the .dmp file.
+  #Run: !analyze -v
+  #Look for: MODULE_NAME or IMAGE_NAME
+  
+  #In this case:
+  #MODULE_NAME: UCPD
+  #IMAGE_NAME:  UCPD.sys
+  
+  #workaround until fixed:
+  #boot-ramfb, F8 to get boot modes, 5 to boot in safe mode with networking
+  
+  #location of UCPD.sys: Windows/System32/drivers/UCPD.sys
+  
+  local mountpoint="$1"
+  if [ -e "$mountpoint/Windows/System32/drivers/UCPD.sys" ];then
+    if sudo rm -f "$mountpoint/Windows/System32/drivers/UCPD.sys" ;then
+      status_green "Successfully removed UCPD.sys from disk.qcow2"
     fi
   fi
 }
@@ -1265,6 +1300,7 @@ To get a fresh VM up and running, use a sequence like this:
     
     remove_microsoft_defender "$mountpoint" || exit 1
     #if debloat is disabled, all this does is mount the disk.qcow2 to make sure it seems complete
+    remove_UCPD_from_mountpoint
     
     unmount_qcow2 || exit 1
     
@@ -1416,23 +1452,56 @@ To get a fresh VM up and running, use a sequence like this:
     balloon_popper=$!
     trap "kill $balloon_popper 2>/dev/null" EXIT SIGINT
     
-    #run qemu with these flags
-    if [ "$use_taskset" == false ];then
-      qemu-system-aarch64 "${full_qemu_flags[@]}"
-    else
-      #For rockchip (untested but based on https://gist.github.com/Vogtinator/293c4f90c5e92838f7e72610725905fd?permalink_comment_id=5378278#gistcomment-5378278)
-      taskset -c "$(echo "$use_cores" | tr '\n' ',' | sed 's/,$//g')" qemu-system-aarch64 "${full_qemu_flags[@]}"
-    fi
-    qemu_exit_code=$?
+    retrying=0
+    time_before="$(sed 's/\..*//g' /proc/uptime)"
+    while true;do #loop for re-running qemu after BSOD and removing UCPD.sys
+      #run qemu with these flags
+      if [ "$use_taskset" == false ];then
+        qemu-system-aarch64 "${full_qemu_flags[@]}"
+      else
+        #For rockchip (untested but based on https://gist.github.com/Vogtinator/293c4f90c5e92838f7e72610725905fd?permalink_comment_id=5378278#gistcomment-5378278)
+        taskset -c "$(echo "$use_cores" | tr '\n' ',' | sed 's/,$//g')" qemu-system-aarch64 "${full_qemu_flags[@]}"
+      fi
+      qemu_exit_code=$?
+      
+      if [ $qemu_exit_code == 0 ];then
+        status "QEMU closed."
+        
+        time_after="$(sed 's/\..*//g' /proc/uptime)"
+        if [ $((time_before+120)) -ge $time_after ];then
+          if [ $retrying == 0 ];then
+            #if qemu ran for less than 120 seconds, the VM likely had a BSOD. Try to fix it and run qemu one more time
+            retrying=1
+            
+            warning "QEMU ran for less than 120 seconds. Windows likely experienced an error during boot. Trying to fix it..."
+            
+            mountpoint="/media/$USER/bvm-mount$rdp_port"
+            if ! (mount_qcow2 "$vmdir/disk.qcow2") ;then
+              (unmount_qcow2)
+              (error "Failed to mount disk.qcow2 to complete repairs")
+              break
+            fi
+            
+            remove_UCPD_from_mountpoint "$mountpoint"
+            unmount_qcow2
+            #continue in loop to restart qemu
+          else
+            #qemu still exited with code 0 in less than 120 seconds
+            warning "Even after attempted repairs, QEMU ran for less than 120 seconds. Windows likely experienced another BSOD during boot. Giving up."
+            break
+          fi
+        else
+          echo -e '\e[103m\e[30mConsider supporting the developer Botspot.\e[96m\e[40m  \e[4mhttps://github.com/sponsors/Botspot\e[0m'
+          break
+        fi
+      else
+        (exit $qemu_exit_code) ; qemu_exitcode_analyzer
+        break
+      fi
+    done
+    
     kill $balloon_popper
     sudo rm -f "$udev_file"
-    
-    if [ $qemu_exit_code == 0 ];then
-      status "QEMU closed."
-      echo -e '\e[103m\e[30mConsider supporting the developer Botspot.\e[96m\e[40m  \e[4mhttps://github.com/sponsors/Botspot\e[0m'
-    else
-      (exit $qemu_exit_code) ; qemu_exitcode_analyzer
-    fi
     ;;
   connect*)
     #make sure the qemu process is running
