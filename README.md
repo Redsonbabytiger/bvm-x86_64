@@ -74,7 +74,7 @@ To get a fresh VM up and running, use a sequence like this:
     Note: the connect mode used FreeRDP in the past; [now](https://github.com/Botspot/bvm/commit/4650cd52fafc499c0a21f636da11b1d5ed5504c0) it uses Remmina. Use `connect-freerdp` to go back, and if you prefer it, tell me why. Otherwise I will be removing freerdp from BVM.
 - Mount the Windows main hard drive with:  
     `bvm/bvm mount ~/win11`  
-    Direct file access can be useful for troubleshooting and further debloating. Be aware: if the VM was not shut down properly, the files will mount read-only.
+    Direct file access can be useful for troubleshooting and further debloating.
 - Expand the Windows main hard drive with:  
     `bvm/bvm expand ~/win11`
     It will ask how many gigabytes of space to add.
