@@ -538,17 +538,37 @@ package_installed() { #exit 0 if $1 package is installed, otherwise exit 1
   grep -x "Package: $package" /var/lib/dpkg/status -A 2 | grep -qxF 'Status: install ok installed'
 }
 
+package_available() { #determine if the specified package-name exists in a local repository for the current dpkg architecture
+  local package="$(awk -F: '{print $1}' <<<"$1")"
+  local dpkg_arch="$(awk -F: '{print $2}' <<<"$2")"
+  [ -z "$dpkg_arch" ] && dpkg_arch="$(dpkg --print-architecture)"
+  [ -z "$package" ] && error "package_available(): no package name specified!"
+  local output="$(apt-cache policy "$package":"$dpkg_arch" | grep "Candidate:")"
+  if [ -z "$output" ]; then
+    return 1
+  elif echo "$output" | grep -q "Candidate: (none)"; then
+    return 1
+  else
+    return 0
+  fi
+}
+
 install_dependencies() { #try to install everything BVM needs
   required_commands="git jq wget mkisofs qemu-img qemu-system-aarch64 remmina nmap wget yad uuidgen wiminfo socat ntfsresize nc"
   apt_packages="git jq wget genisoimage qemu-utils qemu-system-arm qemu-system-gui qemu-efi-aarch64 remmina remmina-plugin-rdp nmap wget yad uuid-runtime seabios ipxe-qemu wimtools socat ntfs-3g netcat-traditional"
   
   #using freerdp version 2 instead of 3 because it does not freeze on login and has more reliable clipboard sync
   if [ "$XDG_SESSION_TYPE" == wayland ];then
-    required_commands+=" wlfreerdp"
-    apt_packages+=" freerdp2-wayland"
+    #freerdp2 is not available on debian Trixie; rather than switch to freerdp3 and cause regressions, as remmina is better simply don't install freerdp2 if not found.
+    if package_available freerdp2-wayland ;then
+      required_commands+=" wlfreerdp"
+      apt_packages+=" freerdp2-wayland"
+    fi
   else
-    required_commands+=" xfreerdp"
-    apt_packages+=" freerdp2-x11"
+    if package_available freerdp2-x11 ;then
+      required_commands+=" xfreerdp"
+      apt_packages+=" freerdp2-x11"
+    fi
   fi
   
   #check if any commands are absent
@@ -623,7 +643,7 @@ Comment=Simple GUI for running Windows 11 with BVM
 Exec=${DIRECTORY}/bvm gui
 Icon=${DIRECTORY}/resources/graphics/icon.png
 Terminal=false
-StartupWMClass=wlfreerdp
+StartupWMClass=bvm
 Type=Application
 Categories=Office
 StartupNotify=true" > ~/.local/share/applications/bvm.desktop
@@ -896,7 +916,6 @@ To get a fresh VM up and running, use a sequence like this:
  Then in a second shell, connect to the RDP service:
 \e[96m$0 connect $HOME/win11\e[0m
  The connect mode has better audio, clipboard sync, file sharing, dynamic screen resizing, and a higher frame rate.
- Default connect mode uses the FreeRDP client, which is faster, but sometimes freezes on login. If this happens try the connect-remmina mode.
  Mount the Windows main hard drive with:
 \e[96m$0 mount $HOME/win11\e[0m
  Be aware: the VM needs to be shut down properly to mount in read/write mode.
@@ -1533,6 +1552,10 @@ To get a fresh VM up and running, use a sequence like this:
     while true;do #Relaunch the viewer between VM reboots
       case "$mode" in
         connect-freerdp)
+          
+          if ! command -v $freerdp_command ;then
+            error "FreeRDP 2 cannot be installed on your OS, so it cannot be used. Please use Remmina to connect."
+          fi
           
           freerdp_flags=(/v:127.0.0.1:$rdp_port /u:$vm_username /p:$vm_password /relax-order-checks /cert:ignore +auto-reconnect \
             /dynamic-resolution /sound +window-drag -sec-rdp -sec-tls +offscreen-cache +home-drive +menu-anims +multitouch \
